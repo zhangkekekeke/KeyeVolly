@@ -29,7 +29,7 @@ public class JsonDealListener<M> implements IHttpListener {
     private IDataListener<M> dataListener;
     /**
      * 获取主线程的Handler
-     * 通过handler切换至主线程
+     * 通过                                                                                                 handler切换至主线程
      */
     Handler handler = new Handler(Looper.getMainLooper());
 
