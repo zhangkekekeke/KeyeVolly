@@ -6,6 +6,8 @@ package com.keye.keyevolly.http.interfaces;
 
 import org.apache.http.HttpEntity;
 
+import java.util.Map;
+
 /**
  * 处理结果
  */
@@ -19,4 +21,6 @@ public interface IHttpListener {
     void onSuccess(HttpEntity httpEntity);
 
     void onFail();
+
+    void addHttpheader(Map<String, String> headerMap);
 }

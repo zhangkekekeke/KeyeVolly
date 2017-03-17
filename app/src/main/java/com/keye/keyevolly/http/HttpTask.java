@@ -1,6 +1,7 @@
 package com.keye.keyevolly.http;
 
 import com.alibaba.fastjson.JSON;
+import com.keye.keyevolly.http.interfaces.IHttpListener;
 import com.keye.keyevolly.http.interfaces.IHttpService;
 
 import java.io.UnsupportedEncodingException;
@@ -18,11 +19,17 @@ public class HttpTask<T> implements Runnable {
         httpService = requestHolder.getHttpService();
         httpService.setHttpListener(requestHolder.getHttpListener());
         httpService.setUrl(requestHolder.getUrl());
-        T request = requestHolder.getRequestInfo();
-        String requestInfo = JSON.toJSONString(request);
+
+        //增加方法
+        IHttpListener httpListener = requestHolder.getHttpListener();
+        httpListener.addHttpheader(httpService.getHttpHeadMap());
 
         try {
-            httpService.setRequeestData(requestInfo.getBytes("UTF-8"));
+            T request = requestHolder.getRequestInfo();
+            if (request != null) {
+                String requestInfo = JSON.toJSONString(request);
+                httpService.setRequeestData(requestInfo.getBytes("UTF-8"));
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

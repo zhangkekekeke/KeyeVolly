@@ -1,4 +1,6 @@
-package com.keye.keyevolly.http;
+package com.keye.keyevolly.http.download;
+
+import android.util.Log;
 
 import com.keye.keyevolly.http.interfaces.IHttpListener;
 import com.keye.keyevolly.http.interfaces.IHttpService;
@@ -7,23 +9,36 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Created by admin on 2017/3/15.
+ * Created by admin on 2017/3/16.
  */
 
-public class JsonHttpService implements IHttpService {
+public class FileDownHttpService implements IHttpService {
+
+    /**
+     * 即将添加到请求头的信息
+     */
+    private Map<String, String> headerMap = Collections.synchronizedMap(new HashMap<String, String>());
+
+    /**
+     * 含有请求处理的 接口
+     */
     private IHttpListener httpListener;
 
     private HttpClient httpClient = new DefaultHttpClient();
-    private HttpPost httpPost;
+    private HttpGet httpGet;
     private String url;
 
     private byte[] requestData;
@@ -32,7 +47,7 @@ public class JsonHttpService implements IHttpService {
      * httpClient获取网络的回调
      */
     private HttpResponseHandler httpResponseHandler = new HttpResponseHandler();
-
+    private String TAG = "KEYE";
 
     @Override
     public void setUrl(String url) {
@@ -41,15 +56,29 @@ public class JsonHttpService implements IHttpService {
 
     @Override
     public void excute() {
-        httpPost = new HttpPost(url);
-        ByteArrayEntity byteArrayEntity = new ByteArrayEntity(requestData);
-        httpPost.setEntity(byteArrayEntity);
+        httpGet = new HttpGet(url);
+        constractHeader();
+//        ByteArrayEntity byteArrayEntity = new ByteArrayEntity(requestData);
+//        httpGet.setEntity(byteArrayEntity);
         try {
-            httpClient.execute(httpPost, httpResponseHandler);
+            httpClient.execute(httpGet, httpResponseHandler);
         } catch (IOException e) {
             httpListener.onFail();
             e.printStackTrace();
         }
+    }
+
+    private void constractHeader() {
+        Iterator iterator = headerMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            String key = (String) iterator.next();
+            String value = headerMap.get(key);
+            Log.i(TAG, "请求头信息 " + key + " value" + value);
+        }
+    }
+
+    public Map<String, String> getHeaderMap() {
+        return headerMap;
     }
 
     @Override
@@ -59,7 +88,7 @@ public class JsonHttpService implements IHttpService {
 
     @Override
     public void setRequeestData(byte[] requeestData) {
-        this.requestData = requeestData;
+
     }
 
     @Override
@@ -69,12 +98,13 @@ public class JsonHttpService implements IHttpService {
 
     @Override
     public boolean isPause() {
+
         return false;
     }
 
     @Override
     public Map<String, String> getHttpHeadMap() {
-        return null;
+        return getHeaderMap();
     }
 
     @Override
@@ -86,6 +116,7 @@ public class JsonHttpService implements IHttpService {
     public boolean isCancel() {
         return false;
     }
+
 
     private class HttpResponseHandler extends BasicResponseHandler {
         @Override
@@ -100,5 +131,4 @@ public class JsonHttpService implements IHttpService {
             return null;
         }
     }
-
 }

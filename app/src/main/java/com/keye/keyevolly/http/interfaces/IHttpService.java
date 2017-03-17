@@ -4,6 +4,8 @@ package com.keye.keyevolly.http.interfaces;
  * Created by admin on 2017/3/15.
  */
 
+import java.util.Map;
+
 /**
  * 获取网络
  */
@@ -32,4 +34,19 @@ public interface IHttpService {
      */
     void setRequeestData(byte[] requeestData);
 
+
+    void pause();
+
+    boolean isPause();
+
+    /**
+     * 获取请求头的map
+     *
+     * @return
+     */
+    Map<String, String> getHttpHeadMap();
+
+    boolean cancel();
+
+    boolean isCancel();
 }
