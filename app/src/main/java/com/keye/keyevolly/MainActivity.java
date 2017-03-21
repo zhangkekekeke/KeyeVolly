@@ -8,6 +8,7 @@ import android.view.View;
 import com.keye.keyevolly.bean.LoginResopense;
 import com.keye.keyevolly.bean.User;
 import com.keye.keyevolly.http.Volley;
+import com.keye.keyevolly.http.download.DownFileManager;
 import com.keye.keyevolly.http.interfaces.IDataListener;
 
 import java.util.ArrayList;
@@ -32,24 +33,28 @@ public class MainActivity extends AppCompatActivity {
      */
     public void login(View view) {
 
-        for (int i = 0; i < 50; i++) {
+//        for (int i = 0; i < 50; i++) {
+//
+//            User user = new User();
+//            user.setName("123123");
+//            user.setPassword("12354");
+//            Volley.sendRequest(user, url, LoginResopense.class, new IDataListener<LoginResopense>() {
+//                @Override
+//                public void onSuccess(LoginResopense loginRespense) {
+//                    Log.i(TAG, loginRespense.toString());
+//                }
+//
+//                @Override
+//                public void onFail() {
+//                    Log.i(TAG, "获取失败");
+//                }
+//            });
+//
+//        }
 
-            User user = new User();
-            user.setName("123123");
-            user.setPassword("12354");
-            Volley.sendRequest(user, url, LoginResopense.class, new IDataListener<LoginResopense>() {
-                @Override
-                public void onSuccess(LoginResopense loginRespense) {
-                    Log.i(TAG, loginRespense.toString());
-                }
+        DownFileManager downFileManage=new DownFileManager();
+        downFileManage.down("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk");
 
-                @Override
-                public void onFail() {
-                    Log.i(TAG, "获取失败");
-                }
-            });
-
-        }
     }
 
 }

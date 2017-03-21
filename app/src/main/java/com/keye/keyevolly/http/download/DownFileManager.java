@@ -50,7 +50,7 @@ public class DownFileManager implements IDownloadServiceCallable {
             requestHolder.setHttpListener(httpListener);
             requestHolder.setRequestInfo(downloadItemInfo);
             requestHolder.setHttpService(httpService);
-
+            requestHolder.setUrl(url);
             HttpTask httpTask = new HttpTask(requestHolder);
 
             try {
