@@ -2,8 +2,8 @@ package com.keye.keyevolly.http.download;
 
 import android.os.Handler;
 import android.os.Looper;
-
-import com.keye.keyevolly.http.download.interfaces.IDownListener;
+import com.keye.keyevolly.http.download.enums.DownloadStatus;
+import com.keye.keyevolly.http.download.interfaces.IDownLitener;
 import com.keye.keyevolly.http.download.interfaces.IDownloadServiceCallable;
 import com.keye.keyevolly.http.interfaces.IHttpListener;
 import com.keye.keyevolly.http.interfaces.IHttpService;
@@ -17,18 +17,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import static com.keye.keyevolly.http.download.DownloadStatus.downloading;
-
 /**
- * Created by admin on 2017/3/16.
+ * Created by Administrator on 2017/1/16 0016.
+ * 1
+ * DownItenInfo
  */
 
-public class DownLoadListener implements IDownListener {
+public class DownLoadLitener  implements IDownLitener {
+
     private DownloadItemInfo downloadItemInfo;
 
-
     private File file;
-    protected String url;
+    protected  String url;
     private long breakPoint;
     private IDownloadServiceCallable downloadServiceCallable;
 
@@ -36,39 +36,52 @@ public class DownLoadListener implements IDownListener {
     /**
      * 得到主线程
      */
-    private Handler handler = new Handler(Looper.getMainLooper());
-
-    public void addHttpheader(Map<String, String> headerMap) {
-//        if ()
-    }
-
-    public DownLoadListener(DownloadItemInfo downloadItemInfo, IDownloadServiceCallable downloadServiceCallable, IHttpService httpService) {
+    private Handler handler=new Handler(Looper.getMainLooper());
+    public DownLoadLitener(DownloadItemInfo downloadItemInfo,
+                           IDownloadServiceCallable downloadServiceCallable,
+                           IHttpService httpService) {
         this.downloadItemInfo = downloadItemInfo;
         this.downloadServiceCallable = downloadServiceCallable;
         this.httpService = httpService;
-        this.file = new File(downloadItemInfo.getFilePath());
+        this.file=new File(downloadItemInfo.getFilePath());
         /**
          * 得到已经下载的长度
          */
-        this.breakPoint = file.length();
+        this.breakPoint=file.length();
+    }
+
+    /**
+     * 2
+     * @param headerMap
+     */
+    public void addHttpHeader(Map<String,String> headerMap)
+    {
+        long length=getFile().length();
+        if(length>0L)
+        {
+            headerMap.put("RANGE","bytes="+length+"-");
+        }
+
+    }
+    public DownLoadLitener(DownloadItemInfo downloadItemInfo) {
+        this.downloadItemInfo = downloadItemInfo;
     }
 
     @Override
-    public void setHttpService(IHttpListener httpService) {
-
+    public void setHttpServive(IHttpService httpServive) {
+        this.httpService=httpServive;
     }
-
 
     /**
      * 设置取消接口
      */
     @Override
-    public void setCancleCall() {
+    public void setCancleCalle() {
 
     }
 
     @Override
-    public void setPuaseCall() {
+    public void setPuaseCallble() {
 
     }
 
@@ -100,8 +113,8 @@ public class DownLoadListener implements IDownListener {
         //更新数量
         this.receviceTotalLength(totalLength);
         //更新状态
-        this.downloadStatusChange(downloading);
-        byte[] buffer = new byte[1024];
+        this.downloadStatusChange(DownloadStatus.downloading);
+        byte[] buffer = new byte[512];
         int count = 0;
         long currentTime = System.currentTimeMillis();
         BufferedOutputStream bos = null;
@@ -109,13 +122,13 @@ public class DownLoadListener implements IDownListener {
 
         try {
             if (!makeDir(this.getFile().getParentFile())) {
-                downloadServiceCallable.onDownloadError(downloadItemInfo, 1, "创建文件夹失败");
+                downloadServiceCallable.onDownloadError(downloadItemInfo,1,"创建文件夹失败");
             } else {
                 fos = new FileOutputStream(this.getFile(), true);
                 bos = new BufferedOutputStream(fos);
                 int length = 1;
                 while ((length = inputStream.read(buffer)) != -1) {
-                    if (this.getHttpService().isCancel()) {
+                    if (this.getHttpService().isCancle()) {
                         downloadServiceCallable.onDownloadError(downloadItemInfo, 1, "用户取消了");
                         return;
                     }
@@ -124,7 +137,6 @@ public class DownLoadListener implements IDownListener {
                         downloadServiceCallable.onDownloadError(downloadItemInfo, 2, "用户暂停了");
                         return;
                     }
-
                     bos.write(buffer, 0, length);
                     getLen += (long) length;
                     receiveLen += (long) length;
@@ -138,6 +150,7 @@ public class DownLoadListener implements IDownListener {
                         count = 0;
                         calcSpeedLen = 0L;
                         receiveLen = 0L;
+                        //应该保存数据库
                         this.downloadLengthChange(this.breakPoint + getLen, totalLength, speed);
                     }
                 }
@@ -173,29 +186,56 @@ public class DownLoadListener implements IDownListener {
             }
         }
 
+
     }
 
+    /**
+     * 创建文件夹的操作
+     * @param parentFile
+     * @return
+     */
     private boolean makeDir(File parentFile) {
-
-        return parentFile.exists() && !parentFile.isFile()
-                ? parentFile.exists() && parentFile.isDirectory() :
+        return parentFile.exists()&&!parentFile.isFile()
+                ?parentFile.exists()&&parentFile.isDirectory():
                 parentFile.mkdirs();
+    }
+
+
+    private void downloadLengthChange(final long downlength, final long totalLength, final long speed) {
+
+        downloadItemInfo.setCurrentLength(downlength);
+        if(downloadServiceCallable!=null)
+        {
+            DownloadItemInfo copyDownItenIfo=downloadItemInfo.copy();
+            synchronized (this.downloadServiceCallable)
+            {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        downloadServiceCallable.onCurrentSizeChanged(downloadItemInfo,downlength/totalLength,speed);
+                    }
+                });
+            }
+
+        }
+
     }
 
     /**
      * 更改下载时的状态
-     *
      * @param downloading
      */
     private void downloadStatusChange(DownloadStatus downloading) {
-        downloadItemInfo.setDownloadStatus(downloading);
-        final DownloadItemInfo downloadItemInfoCopy = downloadItemInfo.copy();
-        if (downloadServiceCallable != null) {
-            synchronized (this.downloadServiceCallable) {
+        downloadItemInfo.setStatus(downloading.getValue());
+        final DownloadItemInfo copyDownloadItemInfo=downloadItemInfo.copy();
+        if(downloadServiceCallable!=null)
+        {
+            synchronized (this.downloadServiceCallable)
+            {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        downloadServiceCallable.onDownloadStatusChanged(downloadItemInfoCopy);
+                        downloadServiceCallable.onDownloadStatusChanged(copyDownloadItemInfo);
                     }
                 });
             }
@@ -203,43 +243,25 @@ public class DownLoadListener implements IDownListener {
     }
 
     /**
-     * 回调，长度的变化
-     *
-     * @param downlength
+     * 回调  长度的变化
      * @param totalLength
-     * @param speed
      */
-    private void downloadLengthChange(final long downlength, final long totalLength, final long speed) {
-        downloadItemInfo.setCurrentLength(downlength);
-        if (downloadServiceCallable != null) {
-            final DownloadItemInfo downloadItemInfoCopy = downloadItemInfo.copy();
-            downloadServiceCallable.onCurrentSizeChanged(downloadItemInfoCopy, downlength, speed);
-            synchronized (this.downloadServiceCallable) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        downloadServiceCallable.onCurrentSizeChanged(downloadItemInfoCopy, downlength / totalLength, speed);
-                    }
-                });
-            }
-        }
-
-
-    }
-
     private void receviceTotalLength(long totalLength) {
         downloadItemInfo.setCurrentLength(totalLength);
-        final DownloadItemInfo downloadItemInfoCopy = downloadItemInfo.copy();
-        if (downloadServiceCallable != null) {
-            synchronized (this.downloadServiceCallable) {
+        final DownloadItemInfo copyDownloadItemInfo=downloadItemInfo.copy();
+        if(downloadServiceCallable!=null)
+        {
+            synchronized (this.downloadServiceCallable)
+            {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        downloadServiceCallable.onTotalLengthReceived(downloadItemInfoCopy);
+                        downloadServiceCallable.onTotalLengthReceived(copyDownloadItemInfo);
                     }
                 });
             }
         }
+
     }
 
     @Override

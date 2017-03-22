@@ -8,12 +8,11 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
- * Created by admin on 2017/3/16.
+ * Created by Administrator on 2017/1/16 0016.
  */
 
-public class BaseEntity<T> implements Serializable {
+public class BaseEntity<T> implements Serializable{
     private static final long serialVersionUID = 1L;
-
     public BaseEntity() {
     }
 
@@ -35,7 +34,7 @@ public class BaseEntity<T> implements Serializable {
         } catch (ClassNotFoundException classNot) {
             classNot.printStackTrace();
         } finally {
-            if (byteArrayOutputStream != null) {
+            if(byteArrayOutputStream != null) {
                 try {
                     byteArrayOutputStream.close();
                 } catch (IOException io) {
@@ -43,7 +42,7 @@ public class BaseEntity<T> implements Serializable {
                 }
             }
 
-            if (objectOutputStream != null) {
+            if(objectOutputStream != null) {
                 try {
                     objectOutputStream.close();
                 } catch (IOException io) {
@@ -55,5 +54,7 @@ public class BaseEntity<T> implements Serializable {
 
         return null;
     }
+
+
 
 }

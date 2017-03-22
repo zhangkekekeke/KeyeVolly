@@ -58,9 +58,10 @@ public class JsonHttpService implements IHttpService {
     }
 
     @Override
-    public void setRequeestData(byte[] requeestData) {
-        this.requestData = requeestData;
+    public void setRequestData(byte[] requestData) {
+        this.requestData = requestData;
     }
+
 
     @Override
     public void pause() {
@@ -78,12 +79,12 @@ public class JsonHttpService implements IHttpService {
     }
 
     @Override
-    public boolean cancel() {
+    public boolean cancle() {
         return false;
     }
 
     @Override
-    public boolean isCancel() {
+    public boolean isCancle() {
         return false;
     }
 

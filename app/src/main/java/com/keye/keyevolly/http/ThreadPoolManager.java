@@ -5,68 +5,82 @@ import android.util.Log;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static android.R.attr.tag;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
-
 /**
- * Created by admin on 2017/3/15.
+ * Created by Administrator on 2017/1/13 0013.
  */
 
 public class ThreadPoolManager {
-    private static final String TAG = "keye";
-    private static ThreadPoolManager instance = new ThreadPoolManager();
+    private static final String TAG ="keye" ;
+    private static  ThreadPoolManager instance=new ThreadPoolManager();
 
-    private LinkedBlockingDeque<Future<?>> taskQuene = new LinkedBlockingDeque<>();
+    private LinkedBlockingQueue<Future<?>> taskQuene=new LinkedBlockingQueue<>();
 
     private ThreadPoolExecutor threadPoolExecutor;
-
     public static ThreadPoolManager getInstance() {
+
         return instance;
     }
-
-    public ThreadPoolManager() {
-        threadPoolExecutor = new ThreadPoolExecutor(4, 10, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(4), handler);
-        threadPoolExecutor.execute(runnable);
+    private ThreadPoolManager()
+    {
+        threadPoolExecutor=new ThreadPoolExecutor(4,10,10, TimeUnit.SECONDS,new ArrayBlockingQueue<Runnable>(4), handler);
+        threadPoolExecutor.execute(runable);
     }
 
-    private Runnable runnable = new Runnable() {
+    public <T> boolean removeTask(FutureTask futureTask)
+    {
+        boolean result=false;
+        /**
+         * 阻塞式队列是否含有线程
+         */
+        if(taskQuene.contains(futureTask))
+        {
+            taskQuene.remove(futureTask);
+        }else
+        {
+            result=threadPoolExecutor.remove(futureTask);
+        }
+        return  result;
+    }
+
+
+    private Runnable runable =new Runnable() {
         @Override
         public void run() {
-            while (true) {
-                FutureTask futureTask = null;
+            while (true)
+            {
+                FutureTask futrueTask=null;
 
                 try {
                     /**
                      * 阻塞式函数
                      */
-                    Log.i(TAG, "等待队列  " + taskQuene.size());
-                    futureTask = (FutureTask) taskQuene.take();
+                    Log.i(TAG,"等待队列     "+taskQuene.size());
+                    futrueTask= (FutureTask) taskQuene.take();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (futureTask != null) {
-                    threadPoolExecutor.execute(futureTask);
+                if(futrueTask!=null)
+                {
+                    threadPoolExecutor.execute(futrueTask);
                 }
-                Log.i(TAG, "线程池大小    " + threadPoolExecutor.getPoolSize());
+                Log.i(TAG,"线程池大小      "+threadPoolExecutor.getPoolSize());
             }
         }
     };
-
     public <T> void execte(FutureTask<T> futureTask) throws InterruptedException {
         taskQuene.put(futureTask);
     }
 
-    private RejectedExecutionHandler handler = new RejectedExecutionHandler() {
+    private RejectedExecutionHandler handler=new RejectedExecutionHandler() {
         @Override
-        public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
             try {
-                taskQuene.put(new FutureTask<Object>(runnable, null) {
+                taskQuene.put(new FutureTask<Object>(r,null) {
                 });
             } catch (InterruptedException e) {
                 e.printStackTrace();

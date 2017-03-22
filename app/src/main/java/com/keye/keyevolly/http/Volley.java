@@ -21,14 +21,14 @@ public class Volley {
      *                     暴露给调用层
      */
     public static <T, M> void sendRequest(T requestInfo, String url, Class<M> response, IDataListener dataListener) {
-        RequestHolder<T> requestHodler = new RequestHolder<>();
-        requestHodler.setUrl(url);
+        RequestHolder<T> requestHolder = new RequestHolder<>();
+        requestHolder.setUrl(url);
         IHttpService httpService = new JsonHttpService();
         IHttpListener httpListener = new JsonDealListener<>(response, dataListener);
-        requestHodler.setHttpService(httpService);
-        requestHodler.setHttpListener(httpListener);
-        requestHodler.setRequestInfo(requestInfo);
-        HttpTask<T> httpTask = new HttpTask<>(requestHodler);
+        requestHolder.setHttpService(httpService);
+        requestHolder.setHttpListener(httpListener);
+        requestHolder.setRequestInfo(requestInfo);
+        HttpTask<T> httpTask = new HttpTask<>(requestHolder);
         try {
             ThreadPoolManager.getInstance().execte(new FutureTask<Object>(httpTask, null));
         } catch (InterruptedException e) {

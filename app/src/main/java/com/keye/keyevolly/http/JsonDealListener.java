@@ -94,7 +94,8 @@ public class JsonDealListener<M> implements IHttpListener {
     }
 
     @Override
-    public void addHttpheader(Map<String, String> headerMap) {
+    public void addHttpHeader(Map<String, String> headerMap) {
 
     }
+
 }

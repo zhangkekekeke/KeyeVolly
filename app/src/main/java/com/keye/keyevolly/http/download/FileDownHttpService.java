@@ -1,6 +1,8 @@
 package com.keye.keyevolly.http.download;
 
 import android.util.Log;
+import android.widget.ListView;
+
 
 import com.keye.keyevolly.http.interfaces.IHttpListener;
 import com.keye.keyevolly.http.interfaces.IHttpService;
@@ -8,10 +10,7 @@ import com.keye.keyevolly.http.interfaces.IHttpService;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
@@ -20,60 +19,69 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Created by admin on 2017/3/16.
+ * Created by Administrator on 2017/1/16 0016.
+ * 1
+ * DownItemInfo
+ * File
  */
 
 public class FileDownHttpService implements IHttpService {
-
+    private static final String TAG = "keye";
     /**
      * 即将添加到请求头的信息
      */
-    private Map<String, String> headerMap = Collections.synchronizedMap(new HashMap<String, String>());
-
+    private Map<String ,String> headerMap= Collections.synchronizedMap(new HashMap<String ,String>());
     /**
      * 含有请求处理的 接口
      */
     private IHttpListener httpListener;
 
-    private HttpClient httpClient = new DefaultHttpClient();
-    private HttpGet httpGet;
+    private HttpClient httpClient=new DefaultHttpClient();
+    private HttpGet httpPost;
     private String url;
 
-    private byte[] requestData;
-
+    private byte[] requestDate;
     /**
      * httpClient获取网络的回调
      */
-    private HttpResponseHandler httpResponseHandler = new HttpResponseHandler();
-    private String TAG = "KEYE";
+    private  HttpRespnceHandler httpRespnceHandler=new HttpRespnceHandler();
+    /**
+     * 增加方法
+     */
+    private AtomicBoolean pause=new AtomicBoolean(false);
 
     @Override
     public void setUrl(String url) {
-        this.url = url;
+        this.url=url;
     }
 
     @Override
     public void excute() {
-        httpGet = new HttpGet(url);
-        constractHeader();
-//        ByteArrayEntity byteArrayEntity = new ByteArrayEntity(requestData);
-//        httpGet.setEntity(byteArrayEntity);
+        httpPost=new HttpGet(url);
+        constrcutHeader();
+//        ByteArrayEntity byteArrayEntity=new ByteArrayEntity(requestDate);
+//        httpPost.setEntity(byteArrayEntity);
         try {
-            httpClient.execute(httpGet, httpResponseHandler);
+            httpClient.execute(httpPost,httpRespnceHandler);
         } catch (IOException e) {
             httpListener.onFail();
-            e.printStackTrace();
         }
     }
 
-    private void constractHeader() {
-        Iterator iterator = headerMap.keySet().iterator();
-        while (iterator.hasNext()) {
-            String key = (String) iterator.next();
-            String value = headerMap.get(key);
-            Log.i(TAG, "请求头信息 " + key + " value" + value);
+    /**
+     * 1
+     */
+    private void constrcutHeader() {
+        Iterator iterator=headerMap.keySet().iterator();
+        while (iterator.hasNext())
+        {
+            String key= (String) iterator.next();
+            String value=headerMap.get(key);
+            Log.i(TAG," 请求头信息  "+key+"  value "+value);
+            httpPost.addHeader(key,value);
         }
     }
 
@@ -83,51 +91,54 @@ public class FileDownHttpService implements IHttpService {
 
     @Override
     public void setHttpListener(IHttpListener httpListener) {
-        this.httpListener = httpListener;
+        this.httpListener=httpListener;
     }
 
     @Override
-    public void setRequeestData(byte[] requeestData) {
-
+    public void setRequestData(byte[] requestData) {
+        this.requestDate=requestData;
     }
 
     @Override
     public void pause() {
-
-    }
-
-    @Override
-    public boolean isPause() {
-
-        return false;
+        pause.compareAndSet(false,true);
     }
 
     @Override
     public Map<String, String> getHttpHeadMap() {
-        return getHeaderMap();
+        return headerMap;
     }
 
     @Override
-    public boolean cancel() {
+    public boolean cancle() {
         return false;
     }
 
     @Override
-    public boolean isCancel() {
+    public boolean isCancle() {
         return false;
     }
+    @Override
+    public boolean isPause() {
+        return pause.get();
+    }
 
-
-    private class HttpResponseHandler extends BasicResponseHandler {
+    private class HttpRespnceHandler extends BasicResponseHandler
+    {
         @Override
-        public String handleResponse(HttpResponse response) throws HttpResponseException, ClientProtocolException {
-            //响应码
-            int code = response.getStatusLine().getStatusCode();
-            if (code == 200) {
+        public String handleResponse(HttpResponse response) throws ClientProtocolException {
+            //响应吗
+            int code=response.getStatusLine().getStatusCode();
+            if(code==200||206==code)
+            {
                 httpListener.onSuccess(response.getEntity());
-            } else {
+            }else
+            {
+                ListView list;
                 httpListener.onFail();
             }
+
+
             return null;
         }
     }

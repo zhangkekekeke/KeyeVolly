@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 //        }
 
         DownFileManager downFileManage=new DownFileManager();
-        downFileManage.down("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk");
+        downFileManage.download("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk");
 
     }
 
